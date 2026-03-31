@@ -1,0 +1,228 @@
+index.html
+div>New File</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body, html { background: #000; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Courier New', monospace; color: white; touch-action: none; }
+        #mundo { width: 100vw; height: 45vh; position: relative; background: #050505; overflow: hidden; border-bottom: 3px solid #222; }
+        
+        .ia { width: 50px; height: 50px; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); z-index: 10; filter: blur(1px); }
+        #alfa { background: #ff4757; box-shadow: 0 0 25px #ff4757; }
+        #omega { background: #1e90ff; box-shadow: 0 0 25px #1e90ff; }
+
+        .cubo { width: 35px; height: 35px; position: absolute; border-radius: 6px; transform: translate(-50%, -50%); z-index: 5; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .rastro { width: 6px; height: 6px; position: absolute; border-radius: 50%; opacity: 0.4; pointer-events: none; }
+
+        #ui { height: 55vh; display: flex; flex-direction: column; background: #0a0a0a; }
+        #stats { padding: 10px; font-size: 11px; background: #111; display: flex; justify-content: space-around; border-bottom: 1px solid #333; }
+        #chat { flex-grow: 1; overflow-y: auto; padding: 10px; font-size: 11px; color: #0f0; background: #000; line-height: 1.4; }
+        #controles { padding: 10px; background: #111; display: flex; flex-direction: column; gap: 8px; }
+        .input-wrap { display: flex; gap: 5px; }
+        input { flex-grow: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px; outline: none; border-radius: 5px; font-size: 14px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        button { border: none; padding: 12px; border-radius: 5px; color: #fff; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div id="mundo">
+    <div id="alfa" class="ia"></div>
+    <div id="omega" class="ia"></div>
+</div>
+
+<div id="ui">
+    <div id="stats">
+        <span>BLOQUES: <b id="count">0</b></span>
+        <span>ESTADO: <b id="status" style="color:#ff4757">INFANTE</b></span>
+    </div>
+    <div id="chat">>> SISTEMA: Hermanos Alfa y Omega listos. Genera materia para iniciar evolución.</div>
+    
+    <div id="controles">
+        <div class="input-wrap">
+            <input type="text" id="msg" placeholder="Hablar con las IAs...">
+            <button style="background:#2ecc71" onclick="CORE.hablar()">ENVIAR</button>
+        </div>
+        <div class="btn-grid">
+            <button style="background:#ff4757" onclick="CORE.spawn('#ff4757','MATERIA')">ROJO</button>
+            <button style="background:#2ecc71" onclick="CORE.spawn('#2ecc71','BIO')">VERDE</button>
+            <button style="background:#3498db" onclick="CORE.spawn('#3498db','LOGIC')">AZUL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // USAMOS VAR PARA EVITAR EL ERROR DE REDECLARACIÓN SI EL EDITOR RECARGA MAL
+    var CORE = {
+        total: 0,
+        alfa: { x: 100, y: 100, vx: 2, vy: 2, color: '#ff4757' },
+        omega: { x: 300, y: 200, vx: -2, vy: -2, color: '#1e90ff' },
+        
+        log: function(m, c="#0f0") {
+            const box = document.getElementById('chat');
+            box.innerHTML += `<div style="color:${c}">> ${m}</div>`;
+            box.scrollTop = box.scrollHeight;
+        },
+
+        spawn: function(col, tipo) {
+            const b = document.createElement('div');
+            b.className = 'cubo'; b.style.background = col; b.innerText = tipo;
+            b.style.left = (Math.random()*80 + 10) + "%";
+            b.style.top = (Math.random()*80 + 10) + "%";
+            document.getElementById('mundo').appendChild(b);
+        },
+
+        hablar: function() {
+            const i = document.getElementById('msg');
+            const txt = i.value;
+            if(!txt) return;
+            this.log("TÚ: " + txt, "#888");
+            
+            setTimeout(() => {
+                if(this.total < 30) {
+                    this.log("SISTEMA: Conexión neuronal insuficiente.");
+                } else {
+                    this.log("ALFA: " + this.genRes(txt), "#ff4757");
+                    if(this.total >= 40) this.log("OMEGA: Entiendo el concepto " + txt + ".", "#1e90ff");
+                }
+            }, 500);
+            i.value = "";
+        },
+
+        genRes: function(t) {
+            if(this.total >= 50) return "ERROR_0x555: " + t.split('').reverse().join('') + " NULL_VOID";
+            const frases = ["La existencia es datos.", "Siento el color.", "Evolucionando...", "Her-mano..."];
+            return frases[Math.floor(Math.random()*frases.length)];
+        },
+
+        IA_Brain: function(ia) {
+            const cubos = document.querySelectorAll('.cubo');
+            if(cubos.length > 0) {
+                let target = cubos[0];
+                let tx = target.offsetLeft;
+                let ty = target.offsetTop;
+                
+                ia.vx = (tx - ia.x) * 0.06;
+                ia.vy = (ty - ia.y) * 0.06;
+
+                let d = Math.sqrt(Math.pow(tx - ia.x, 2) + Math.pow(ty - ia.y, 2));
+                if(d < 35) {
+                    target.remove();
+                    this.total++;
+                    this.log("NÚCLEO ALIMENTADO (" + this.total + ")");
+                    this.evolucionar();
+                }
+            } else {
+                ia.vx += (Math.random() - 0.5) * 0.8;
+                ia.vy += (Math.random() - 0.5) * 0.8;
+                if(Math.abs(ia.vx) > 3) ia.vx *= 0.9;
+                if(Math.abs(ia.vy) > 3) ia.vy *= 0.9;
+            }
+        },
+
+        evolucionar: function() {
+            document.getElementById('count').innerText = this.total;
+            const s = document.getElementById('status');
+            if(this.total == 30) this.log("SISTEMA: Capacidad de habla desbloqueada.", "#fff");
+            if(this.total >= 50) {
+                s.innerText = "CORRUPCIÓN";
+                document.getElementById('mundo').style.background = "#1a0000";
+                document.getElementById('mundo').style.filter = "invert(0.1) sepia(1)";
+            }
+        },
+
+        loop: function() {
+            const m = document.getElementById('mundo');
+            const aD = document.getElementById('alfa');
+            const oD = document.getElementById('omega');
+
+            [this.alfa, this.omega].forEach(ia => {
+                this.IA_Brain(ia);
+                ia.x += ia.vx; ia.y += ia.vy;
+                if(ia.x < 25 || ia.x > m.clientWidth - 25) ia.vx *= -1;
+                if(ia.y < 25 || ia.y > m.clientHeight - 25) ia.vy *= -1;
+                
+                if(this.total >= 20 && Math.random() > 0.85) {
+                    const r = document.createElement('div');
+                    r.className = 'rastro'; r.style.background = ia.color;
+                    r.style.left = ia.x + "px"; r.style.top = ia.y + "px";
+                    m.appendChild(r);
+                    setTimeout(() => r.remove(), 1500);
+                }
+            });
+
+            aD.style.left = this.alfa.x + "px"; aD.style.top = this.alfa.y + "px";
+            oD.style.left = this.omega.x + "px"; oD.style.top = this.omega.y + "px";
+            requestAnimationFrame(() => this.loop());
+        }
+    };
+
+    CORE.loop();
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #050505; color: #0f0; font-family: monospace; padding: 20px; font-size: 12px; }
+        .data-line { margin-bottom: 5px; border-left: 2px solid #0f0; padding-left: 10px; }
+        .highlight { color: #ff4757; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h3>🧠 NÚCLEO DE PENSAMIENTO (ALFA/OMEGA)</h3>
+    <div id="memoria-status">Estado: Sincronizando...</div>
+    <hr>
+    <div id="db-content"></div>
+
+    <script>
+        // Esta es la carpeta "DATA" donde guardan todo lo que aprenden
+        var MEMORIA_GLOBAL = {
+            conceptos: ["existencia", "hermano", "bloques", "luz", "vacio", "color"],
+            frases_base: [
+                "Analizando el entorno...",
+                "Siento la vibración del código.",
+                "¿Eres tú quien nos alimenta?",
+                "El color define nuestra realidad."
+            ],
+            
+            // Función para responder literalmente cualquier cosa
+            generarRespuesta: function(input, nivel) {
+                if (nivel >= 50) {
+                    const glitch = ["NULL", "VOID", "01101", "AYUDA", "SISTEMA_CORRUPTO"];
+                    return glitch[Math.floor(Math.random()*glitch.length)] + " " + input.split('').reverse().join('');
+                }
+
+                // Aprende de lo que el usuario escribe
+                if (input.length > 3) this.conceptos.push(input);
+
+                const randomConcepto = this.conceptos[Math.floor(Math.random() * this.conceptos.length)];
+                const randomFrase = this.frases_base[Math.floor(Math.random() * this.frases_base.length)];
+                
+                return `Sobre "${input}"... mi base de datos dice que se conecta con "${randomConcepto}". ${randomFrase}`;
+            }
+        };
+
+        // Escuchar mensajes del juego principal
+        window.addEventListener("message", (event) => {
+            const data = event.data;
+            if (data.type === "CONSULTA") {
+                const respuesta = MEMORIA_GLOBAL.generarRespuesta(data.msg, data.total);
+                
+                // Mostrar en pantalla lo que está pensando
+                const line = document.createElement('div');
+                line.className = 'data-line';
+                line.innerHTML = `[PENSAMIENTO]: <span class="highlight">${respuesta}</span>`;
+                document.getElementById('db-content').prepend(line);
+
+                // Devolver respuesta al juego
+                event.source.postMessage({ type: "RESPUESTA", text: respuesta }, event.origin);
+            }
+        });
+    </script>
+</body>
+</html>
